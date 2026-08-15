@@ -6,23 +6,13 @@ import { usePhysicsLab } from './usePhysicsLab';
 
 export default function Lab() {
   const {
-    sceneRef,
-    phase, setPhase,
-    isMinimized, setIsMinimized,
-    lesson, setLesson,
-    gravityType, changeGravity,
-    showCustomizer, setShowCustomizer,
-    customShape, setCustomShape,
-    customMaterial, setCustomMaterial,
-    customSize, setCustomSize,
-    customMassMult, setCustomMassMult,
-    showQuiz, setShowQuiz,
-    quizState, setQuizState,
-    selectedAnswer, setSelectedAnswer,
-    zoom, setZoom,
-    clearLab,
-    spawn,
-    currentLesson
+    sceneRef, phase, setPhase, isMinimized, setIsMinimized,
+    lesson, setLesson, gravityType, changeGravity,
+    showCustomizer, setShowCustomizer, customShape, setCustomShape,
+    customMaterial, setCustomMaterial, customSize, setCustomSize,
+    customMassMult, setCustomMassMult, showQuiz, setShowQuiz,
+    quizState, setQuizState, selectedAnswer, setSelectedAnswer,
+    zoom, setZoom, clearLab, spawn, currentLesson
   } = usePhysicsLab();
 
   return (
@@ -55,11 +45,34 @@ export default function Lab() {
               </div>
             </div>
 
-            {/* Deep Theory Content */}
-            <div className="space-y-6 text-lg sm:text-xl text-slate-300 leading-relaxed mb-12">
-              {currentLesson.theory.map((paragraph, idx) => (
-                <p key={idx}>{paragraph}</p>
-              ))}
+            {/* 🚀 DEEP THEORY CONTENT PARSER */}
+            <div className="text-lg sm:text-xl text-slate-300 leading-relaxed mb-12">
+              {currentLesson.theory.map((paragraph, idx) => {
+                // Style the "Lab Experiment" Headers
+                if (paragraph.startsWith('🔬')) {
+                  return <h3 key={idx} className="text-2xl font-bold text-cyan-400 mt-12 mb-6 flex items-center gap-2">{paragraph}</h3>;
+                }
+                // Style the "Real World" Callouts
+                if (paragraph.startsWith('💡')) {
+                  return (
+                    <div key={idx} className="bg-yellow-500/10 border border-yellow-500/30 text-yellow-100 p-6 rounded-2xl italic my-10 shadow-inner">
+                      <span className="font-bold text-yellow-400 block mb-2 not-italic tracking-wider text-sm uppercase">Real World Application</span>
+                      {paragraph.replace('💡 Real World Application:', '').trim()}
+                    </div>
+                  );
+                }
+                // Style the Experiment Bullet Points
+                if (paragraph.startsWith('▶')) {
+                  return (
+                    <div key={idx} className="flex gap-4 text-slate-300 mb-6 items-start bg-slate-900/50 p-4 rounded-xl border border-slate-800/50">
+                      <span className="text-cyan-500 mt-1 shrink-0">▶</span> 
+                      <span>{paragraph.substring(1).trim()}</span>
+                    </div>
+                  );
+                }
+                // Standard text paragraphs
+                return <p key={idx} className="mb-6">{paragraph}</p>;
+              })}
             </div>
             
             {/* Formula Block */}
@@ -68,7 +81,7 @@ export default function Lab() {
               <p className="text-4xl sm:text-5xl text-emerald-400 font-mono font-bold tracking-tight">{currentLesson.formula}</p>
             </div>
 
-            <div className="flex-grow"></div> {/* Pushes buttons to the bottom if screen is tall */}
+            <div className="flex-grow"></div> 
 
             {/* Bottom Action Buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 pb-8">
@@ -82,7 +95,7 @@ export default function Lab() {
               
               <button 
                 onClick={() => setPhase('play')}
-                className="group flex items-center justify-center gap-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-5 px-8 rounded-2xl transition-all shadow-lg shadow-cyan-900/50"
+                className="group flex items-center justify-center gap-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-5 px-8 rounded-2xl transition-all shadow-lg shadow-cyan-900/50 hover:scale-[1.02]"
               >
                 <FlaskConical className="w-6 h-6 group-hover:rotate-12 transition-transform" />
                 Test It in Lab

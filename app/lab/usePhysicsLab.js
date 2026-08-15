@@ -277,14 +277,16 @@ export function usePhysicsLab() {
 
   const clearLab = () => setResetTrigger(prev => prev + 1);
 
-  // 🚀 EXPANDED: Rich, deep-dive theory arrays!
   const lessonData = {
     1: { 
       title: 'Restitution', desc: 'Observe kinetic energy retention.', formula: 'e = v / u',
       theory: [
-        "Restitution is the physics term for 'bounciness'. When two objects collide, they physically compress against each other. The coefficient of restitution (e) measures how efficiently an object snaps back to its original shape.",
-        "On a microscopic level, this depends entirely on the material's molecular bonds. A rubber ball has long polymer chains that stretch and spring back with almost zero energy loss, resulting in a high restitution close to 1.0.",
-        "In contrast, a heavy bowling ball or a chunk of clay absorbs the impact. The molecular bonds permanently deform or shift, turning the kinetic energy of the fall into heat and sound rather than upward motion. This is called an 'inelastic collision'."
+        "Restitution is the physics term for 'bounciness'. When two objects collide, they physically compress against each other. The coefficient of restitution (e) measures how efficiently an object snaps back to its original shape without losing energy.",
+        "On a microscopic level, this depends entirely on the material's molecular bonds. A rubber ball has long polymer chains that stretch and spring back with almost zero energy loss, resulting in a high restitution close to 1.0. In contrast, a dense chunk of metal or clay permanently deforms, turning kinetic energy into heat and sound rather than upward motion.",
+        "💡 Real World Application: We engineer car bumpers to have low restitution (so they crumple and absorb deadly crash energy), but we engineer billiard balls to have extremely high restitution (so they bounce off each other perfectly without losing speed).",
+        "🔬 LAB EXPERIMENT: Rubber vs. Bowling Ball",
+        "▶ Click 'Drop Rubber' first. Watch how the blue ball compresses slightly upon hitting the ground and aggressively pushes back, returning almost to its original drop height. It effectively retains its kinetic energy.",
+        "▶ Click 'Drop Bowling Ball' next. Notice the heavy thud. Its dense, rigid structure doesn't compress and spring back. The kinetic energy is immediately lost to the ground, causing it to barely bounce at all."
       ],
       buttons: [{ label: 'Drop Rubber', action: () => spawn('rubber') }, { label: 'Drop Bowling Ball', action: () => spawn('bowling') }], 
       quiz: { question: "Which material property determines how much kinetic energy is retained after a collision?", options: ["Density", "Restitution", "Friction", "Mass"], answer: 1, explanation: "Restitution measures how much kinetic energy remains after an impact." } 
@@ -294,7 +296,10 @@ export function usePhysicsLab() {
       theory: [
         "Friction is the force that resists the relative motion of two solid surfaces sliding against each other. Even objects that look perfectly smooth to the naked eye actually have jagged, microscopic mountains and valleys on their surfaces.",
         "When two materials touch, these microscopic peaks catch onto each other. To keep moving, the object has to either rise over these peaks or break them off, which requires energy.",
-        "Ice has a near-zero coefficient of friction because a microscopic layer of water acts as a lubricant, filling in those valleys. Wood, however, is porous and rough, causing it to grip the surface and rapidly slow down."
+        "💡 Real World Application: Anti-lock braking systems (ABS) in cars are designed to prevent tires from sliding. Static friction (a rolling tire) provides much more grip and control than kinetic friction (a skidding tire)!",
+        "🔬 LAB EXPERIMENT: Ice vs. Wood",
+        "▶ In the lab, you will see a slanted ramp in the center of the screen. Click 'Spawn Ice Block'. It immediately slides down. Ice has a near-zero friction coefficient, so gravity easily overcomes its resistance.",
+        "▶ Now click 'Spawn Wood Block'. Pay close attention! Wood is porous and rough. The static friction is so high that the horizontal pull of gravity isn't strong enough to force it down the slope. It gets stuck!"
       ],
       buttons: [{ label: 'Spawn Ice Block', action: () => spawn('ice') }, { label: 'Spawn Wood Block', action: () => spawn('wood') }], 
       quiz: { question: "What force resists the blocks as they slide down the ramp?", options: ["Momentum", "Tension", "Gravity", "Friction"], answer: 3, explanation: "Friction is the resistance encountered when moving over another surface." } 
@@ -303,8 +308,12 @@ export function usePhysicsLab() {
       title: 'Gravity', desc: 'Change planetary mass.', formula: 'F = m × a', isGravity: true, 
       theory: [
         "Gravity is the invisible force that pulls massive objects toward each other. According to Einstein's Theory of General Relativity, massive objects actually warp the fabric of space-time around them, creating a 'dent' that other objects fall into.",
-        "The more mass a planet has, the deeper the dent, and the stronger its gravitational pull. Earth pulls objects downward at an acceleration of 9.8 meters per second squared.",
-        "If you travel to Jupiter, which is incredibly massive, it accelerates objects downward 2.4 times faster than Earth! Conversely, the Moon has very little mass, allowing objects to fall in a slow, floaty manner."
+        "The more mass a planet has, the deeper the dent, and the stronger its gravitational pull. Earth pulls objects downward at a constant acceleration of 9.8 meters per second squared.",
+        "💡 Real World Application: Astronauts on the Moon could easily jump 10 feet in the air wearing 200-pound spacesuits because the Moon's total mass is only 1.2% of Earth's!",
+        "🔬 LAB EXPERIMENT: Changing Planets",
+        "▶ By default, the lab runs on Earth gravity. Spawn a few items from the Forge and notice the natural speed of falling objects.",
+        "▶ Click the 'Moon' button. Suddenly, everything falls in slow motion. The gravitational acceleration drops to 1.6 m/s². The mass of the objects hasn't changed, but the downward pull has weakened.",
+        "▶ Click the 'Jupiter' button. Jupiter's massive gravity (24.79 m/s²) yanks objects to the floor almost instantly. Notice how much harder objects hit the ground—more acceleration means higher velocity upon impact!"
       ],
       quiz: { question: "If you drop an object on Jupiter, why does it fall faster than on Earth?", options: ["Higher mass creates stronger gravity", "No air resistance", "Magnetic pull", "Shorter distance"], answer: 0, explanation: "Gravity is determined by planetary mass. Jupiter is massive, pulling objects faster." } 
     },
@@ -312,8 +321,11 @@ export function usePhysicsLab() {
       title: 'Air Resistance', desc: 'Drag affects falling speed.', formula: 'F_d = ½ρv²C_dA',
       theory: [
         "A famous physics rule states that in a perfect vacuum, all objects fall at the exact same speed regardless of their mass. A feather and a bowling ball dropped on the moon will hit the ground simultaneously.",
-        "However, on Earth, we live at the bottom of an ocean of air. As objects fall, they have to literally push billions of air molecules out of the way. This creates a friction force pushing upward, known as drag.",
-        "Because a feather has a massive surface area relative to its tiny mass, air resistance easily counteracts gravity, causing it to drift. An iron ball's mass easily punches through the air, making it fall much faster."
+        "However, on Earth, we live at the bottom of an ocean of air. As objects fall, they have to literally push billions of air molecules out of the way. This creates a friction force pushing upward, known as aerodynamic drag.",
+        "💡 Real World Application: Skydivers change their body posture to control their fall. Spreading out like a starfish increases drag, slowing them down to about 120 mph. Tucking into a dive drastically reduces drag, speeding them up to over 200 mph!",
+        "🔬 LAB EXPERIMENT: Feather vs. Iron Ball",
+        "▶ Click 'Drop Iron Ball'. Because its mass is high and its surface area is relatively small, air resistance is negligible. It easily punches through the air molecules.",
+        "▶ Click 'Drop Feather'. The feather has very little mass but a wide surface area. As it falls, the upward force of the air quickly equals the downward pull of gravity. It reaches its 'terminal velocity' almost instantly, causing it to gently float."
       ],
       buttons: [{ label: 'Drop Feather', action: () => spawn('feather') }, { label: 'Drop Iron Ball', action: () => spawn('iron') }], 
       quiz: { question: "Why does the feather fall slower than the iron ball on Earth?", options: ["Less mass", "Air resistance pushes against its surface area", "Gravity pulls it less", "Lower restitution"], answer: 1, explanation: "On Earth, the feather catches the air, creating upward drag." } 
@@ -322,8 +334,12 @@ export function usePhysicsLab() {
       title: 'Momentum', desc: 'Conservation of momentum.', formula: 'p = m × v',
       theory: [
         "Momentum is defined simply as 'mass in motion'. One of the most unbreakable rules in the universe is the Conservation of Momentum: in a closed system, momentum can never be created or destroyed, only transferred.",
-        "A Newton's Cradle perfectly demonstrates this. When you pull back one ball and let it drop, it strikes the stationary balls with a specific amount of momentum.",
-        "Because the system is perfectly aligned, that exact amount of momentum travels through the atomic structure of the center balls and pushes the final ball outward with almost the exact same speed and energy!"
+        "A Newton's Cradle perfectly demonstrates this. When you pull back one ball and let it drop, it strikes the stationary balls with a specific amount of momentum (mass × velocity).",
+        "💡 Real World Application: A heavy truck moving at 20 mph has the exact same momentum as a small car moving at 60 mph. This is why heavy transport vehicles require vastly upgraded, high-friction brake systems to safely stop!",
+        "🔬 LAB EXPERIMENT: The Newton's Cradle",
+        "▶ In the center of the lab, you'll find a Newton's Cradle. Use your mouse to grab the ball on the far left, pull it high up, and let go.",
+        "▶ Watch the energy transfer. The first ball stops completely when it hits, transferring 100% of its momentum into the chain. The middle balls barely move because they pass the energy instantly through their atomic structure to the final ball.",
+        "▶ Try grabbing TWO balls at once and dropping them! The system 'remembers' the total mass entering it, and exactly two balls will swing out on the other side."
       ],
       buttons: [], 
       quiz: { question: "In a Newton's Cradle, what principle causes the ball on the opposite end to swing out?", options: ["Conservation of Momentum", "Friction", "Air Resistance", "Tension"], answer: 0, explanation: "Energy transfers through the stationary balls, conserving momentum!" } 
@@ -331,9 +347,13 @@ export function usePhysicsLab() {
     6: { 
       title: 'Kinetics', desc: 'Transfer massive force.', formula: 'KE = ½mv²',
       theory: [
-        "Kinetic energy is the energy an object possesses due to its motion. The formula (KE = ½mv²) tells us a crucial secret: doubling an object's mass doubles its energy, but doubling its speed quadruples its energy!",
+        "Kinetic energy is the energy an object possesses due to its motion. The formula tells us a crucial secret: doubling an object's mass doubles its energy, but doubling its speed quadruples its energy!",
         "When a heavy, fast-moving wrecking ball strikes a stationary structure, the First Law of Thermodynamics kicks in. The massive amount of kinetic energy cannot just vanish.",
-        "Instead, it forcefully transfers into the stationary blocks. If the blocks are light, that transferred energy sends them flying in all directions, demonstrating explosive kinetic transfer."
+        "💡 Real World Application: This squared velocity relationship is why a car crash at 80 mph is far more than twice as deadly as a crash at 40 mph. It has four times the destructive kinetic energy!",
+        "🔬 LAB EXPERIMENT: Wrecking Ball vs. Pyramid",
+        "▶ You will see a neatly stacked pyramid of lightweight blocks. Click 'Drop Wrecking Ball' to spawn a massive, dense sphere in the upper corner.",
+        "▶ Observe the impact. Because the wrecking ball is incredibly heavy and has room to accelerate downward, it builds massive kinetic energy.",
+        "▶ When it hits the pyramid, the energy transfers violently into the lightweight blocks. Because they have very little mass, the transferred energy converts into extreme velocity, launching the blocks like shrapnel."
       ],
       buttons: [{ label: 'Drop Wrecking Ball', action: () => spawn('wrecking-ball') }], 
       quiz: { question: "When the wrecking ball hits the pyramid, where does its kinetic energy go?", options: ["It vanishes", "Turns into gravity", "Transfers into the blocks", "Increases mass"], answer: 2, explanation: "Energy cannot be destroyed; it transfers directly into the lighter blocks causing them to move." } 
@@ -342,8 +362,12 @@ export function usePhysicsLab() {
       title: 'Elasticity', desc: 'Springs & Constraints.', formula: 'F = -kx',
       theory: [
         "Elasticity describes a material's ability to return to its original shape after being stretched or compressed. This is governed by Hooke's Law.",
-        "Hooke's Law states that the force needed to stretch a spring is directly proportional to how far you stretch it. Pull a rubber band twice as far, and it will pull back twice as hard.",
-        "In our physics engine, we use 'constraints' to simulate this. When you drag the ball away from its anchor, the constraint acts exactly like a physical spring, building up potential energy and violently pulling the ball back when released."
+        "Hooke's Law states that the restorative force of a spring is directly proportional to how far you stretch it. Pull a rubber band twice as far, and it will pull back twice as hard.",
+        "💡 Real World Application: Archery bows work on this exact principle. When you pull the string back, you are doing 'work' to bend the limbs of the bow, storing your muscle energy as elastic potential energy until you release it into the arrow.",
+        "🔬 LAB EXPERIMENT: The Slingshot",
+        "▶ Notice the red ball suspended in the air. It is attached to an invisible anchor point by an elastic constraint. Grab the ball with your mouse and drag it away from the center.",
+        "▶ As you drag it further, you will notice the mouse link fighting you. You are building Potential Energy. When you let go, Hooke's Law takes over, violently snapping it back.",
+        "▶ Click 'Drop Heavy Box'. Watch how the elastic constraint catches the heavy weight, stretching downward to absorb the massive force before bouncing back up."
       ],
       buttons: [{ label: 'Drop Heavy Box', action: () => spawn('heavy-box') }], 
       quiz: { question: "What provides the restorative force that pulls the ball back?", options: ["Gravity", "Friction", "Restitution", "Elastic Tension"], answer: 3, explanation: "The constraint acts like a spring, converting potential energy back to kinetic." } 
@@ -352,8 +376,12 @@ export function usePhysicsLab() {
       title: 'Tension', desc: 'Suspension constraints.', formula: 'T = m × g',
       theory: [
         "In engineering and physics, forces usually fall into two categories: compression (pushing together) and tension (pulling apart).",
-        "Tension is the pulling force transmitted axially by strings, cables, or chains. Think of a massive suspension bridge: the heavy roadway wants to fall down due to gravity.",
-        "To stop it from falling, massive steel cables are attached. These cables are pulled incredibly tight, creating an upward tension force that perfectly opposes the downward pull of gravity. As long as the cables don't snap, the bridge floats in mid-air!"
+        "Tension is the pulling force transmitted axially by strings, cables, or chains. Think of a massive suspension bridge: the heavy roadway naturally wants to fall down due to gravity.",
+        "💡 Real World Application: Spider webs are nature's ultimate tension structures. A single strand of spider silk has a higher tensile strength than a steel wire of the exact same thickness!",
+        "🔬 LAB EXPERIMENT: The Suspension Bridge",
+        "▶ Look at the bridge suspended across the screen. The wooden planks are not glued together; they are chained via invisible tension constraints. Gravity is pulling them down, but the anchor points are pulling them up.",
+        "▶ Click 'Drop Heavy Box' right over the middle of the bridge. Watch how the entire bridge dips. The downward force of the box increases the tension on every single link in the chain.",
+        "▶ Notice how the impact wave travels along the bridge from the center to the anchors. This demonstrates how tension structures distribute localized weight safely across their entire span."
       ],
       buttons: [{ label: 'Drop Heavy Box', action: () => spawn('heavy-box') }], 
       quiz: { question: "Which force primarily keeps the bridge from collapsing?", options: ["Compression", "Tension from chains", "Friction", "Restitution"], answer: 1, explanation: "The bridge is held up by tension—a pulling force acting along the invisible constraints." } 
@@ -361,9 +389,13 @@ export function usePhysicsLab() {
     9: { 
       title: 'Soft Bodies', desc: 'Deformable structures.', formula: 'Stress = F / A',
       theory: [
-        "In basic physics, we treat objects as 'rigid bodies'—meaning they never bend, squish, or deform. But in the real world, almost everything is slightly soft.",
+        "In basic physics math, we treat objects as 'rigid bodies'—meaning they never bend, squish, or deform. But in the real world, almost everything is slightly soft.",
         "A soft body deforms under mechanical stress. To simulate this computationally, engineers build 'meshes'. We take dozens of tiny, hard particles and connect them all together in a grid using flexible, spring-like constraints.",
-        "When the object hits the ground, the outer particles stop, but the inner particles keep moving slightly. The springs stretch and compress, absorbing the shock and causing the entire structure to jiggle like a block of gelatin!"
+        "💡 Real World Application: Modern cars are designed with 'crumple zones'. Instead of building a perfectly rigid car that transfers the shock of a crash directly into the passengers, engineers build a semi-soft body that crushes to absorb the kinetic energy.",
+        "🔬 LAB EXPERIMENT: The Jello Block",
+        "▶ In the lab, you will see a green, grid-like structure. This is a soft body created by connecting dozens of small rigid nodes.",
+        "▶ Click 'Drop Heavy Box' onto the soft body. Instead of resisting the box and bouncing it away like a rigid shape, the soft body compresses. The impact force is safely distributed throughout the internal springs.",
+        "▶ Grab one corner of the soft body with your mouse and drag it around. Watch how the rest of the body lags behind and jiggles. This is exactly how modern video games simulate realistic jelly, fat, or flexible plastics."
       ],
       buttons: [{ label: 'Drop Heavy Box', action: () => spawn('heavy-box') }], 
       quiz: { question: "Why doesn't the soft-body Jello block shatter upon impact?", options: ["Flexible springs absorb the energy", "Zero mass", "Ignores gravity", "High friction"], answer: 0, explanation: "The elastic springs stretch and deform to gracefully absorb the impact energy." } 
@@ -371,9 +403,13 @@ export function usePhysicsLab() {
     10: { 
       title: 'Granular Flow', desc: 'Particles acting like fluid.', formula: 'μ = tan(θ)',
       theory: [
-        "Granular materials—like sand, grain, snow, or coffee grounds—are fascinating because they break the rules. They are made of solid pieces, but when you put millions of them together, they act like a liquid.",
+        "Granular materials—like sand, grain, snow, or coffee grounds—are fascinating because they break the rules. They are made of solid pieces, but when you put millions of them together, they act collectively like a liquid.",
         "When sitting still in a bucket, they lock together through static friction and behave perfectly like a solid block. You can even walk on them.",
-        "But when poured, those microscopic rigid bodies constantly collide, roll over each other, and flow around obstacles. By simulating hundreds of tiny solid balls in this lab, you can witness fluid dynamics emerging purely from solid collisions!"
+        "💡 Real World Application: Understanding granular flow is critical for preventing deadly snow avalanches, and designing agricultural grain silos (which can actually explode if the internal granular pressure builds incorrectly!).",
+        "🔬 LAB EXPERIMENT: Simulating Fluid Dynamics",
+        "▶ In the lab, there are two large ramps creating a funnel shape. Click 'Spawn 30 Particles' a few times to drop a massive pile of tiny yellow rigid bodies into the funnel.",
+        "▶ Watch how they interact. As they hit the slanted walls, they don't just stop. They tumble over each other, seeking the lowest possible resting point, perfectly mimicking water flowing through a channel.",
+        "▶ Open the Forge, create a massive, heavy square, and drop it into the pile of particles. Watch how the particles 'splash' outward to make room for the denser object, displaying displacement just like an object dropped in a pool of water."
       ],
       buttons: [{ label: 'Spawn 30 Particles', action: () => spawn('particles') }], 
       quiz: { question: "How do large amounts of small, solid particles behave when poured?", options: ["Like a solid block", "Like a fluid", "They float away", "Bounce perfectly"], answer: 1, explanation: "When thousands of tiny rigid bodies interact, their collective movement simulates fluid dynamics." } 
