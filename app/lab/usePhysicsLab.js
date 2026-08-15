@@ -120,7 +120,15 @@ export function usePhysicsLab() {
 
     const mouse = Mouse.create(render.canvas);
     mouseRef.current = mouse;
-    const mouseConstraint = MouseConstraint.create(engine, { mouse: mouse, constraint: { stiffness: 0.2, render: { visible: false } } });
+    const mouseConstraint = MouseConstraint.create(engine, { 
+    mouse: mouse, 
+    constraint: { 
+        stiffness: 0.05,       // Makes it elastic like a rubber band instead of a rigid stick
+        angularStiffness: 0,   // Allows it to freely rotate and dangle from the pinch point
+        damping: 0.1,          // Smooths out the swinging so it feels heavier
+        render: { visible: false } 
+    } 
+    });
     World.add(engine.world, mouseConstraint);
 
     Render.run(render);
