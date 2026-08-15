@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { RefreshCw, Activity, ChevronRight, ChevronLeft, Settings, Hammer, Minimize2, Maximize2, Home, Lightbulb, CheckCircle2, XCircle, ZoomIn, ZoomOut, BookOpen, FlaskConical } from 'lucide-react';
+import { RefreshCw, Activity, ChevronRight, ChevronLeft, Settings, Hammer, Minimize2, Maximize2, Home, Lightbulb, CheckCircle2, XCircle, ZoomIn, ZoomOut, BookOpen, FlaskConical, Calculator } from 'lucide-react';
 import { usePhysicsLab } from './usePhysicsLab';
 
 export default function Lab() {
@@ -12,90 +12,126 @@ export default function Lab() {
     customMaterial, setCustomMaterial, customSize, setCustomSize,
     customMassMult, setCustomMassMult, showQuiz, setShowQuiz,
     quizState, setQuizState, selectedAnswer, setSelectedAnswer,
-    zoom, setZoom, clearLab, spawn, currentLesson
+    quizIndex, setQuizIndex, zoom, setZoom, clearLab, spawn, currentLesson
   } = usePhysicsLab();
+
+  // Helper to grab the active quiz question safely
+  const activeQuiz = currentLesson.quiz ? currentLesson.quiz[quizIndex] : null;
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-slate-950">
       
-      {/* 🚀 NEW: FULL-SCREEN LESSON PAGE */}
+      {/* 🚀 FIXED BUG-FREE NAVBAR (Only visible in lesson phase) */}
       {phase === 'lesson' && (
-        <div className="absolute inset-0 z-50 bg-slate-950 overflow-y-auto custom-scrollbar">
-          <div className="min-h-screen flex flex-col max-w-4xl mx-auto px-6 py-12 sm:py-20 animate-in fade-in slide-in-from-bottom-8 duration-700">
-            
-            {/* Header Navigation */}
-            <div className="flex items-center justify-between mb-12">
-              <Link href="/" className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition">
-                <Home className="w-5 h-5" /> <span>Home</span>
-              </Link>
-              <div className="flex gap-4">
-                <button onClick={() => setLesson(Math.max(1, lesson - 1))} disabled={lesson === 1} className="p-2 text-slate-400 hover:text-white disabled:opacity-30 transition bg-slate-900 rounded-lg border border-slate-800 hover:border-slate-600"><ChevronLeft className="w-5 h-5"/></button>
-                <button onClick={() => setLesson(Math.min(10, lesson + 1))} disabled={lesson === 10} className="p-2 text-slate-400 hover:text-white disabled:opacity-30 transition bg-slate-900 rounded-lg border border-slate-800 hover:border-slate-600"><ChevronRight className="w-5 h-5"/></button>
-              </div>
-            </div>
+        <nav className="fixed top-0 left-0 w-full z-40 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800 px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+          <Link href="/" className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition font-medium">
+            <Home className="w-5 h-5" /> <span className="hidden sm:inline">Home</span>
+          </Link>
+          <div className="text-cyan-400 font-bold tracking-widest text-sm sm:text-base px-4 py-1.5 bg-cyan-950/30 rounded-full border border-cyan-900/50">
+            MODULE {lesson} / 10
+          </div>
+          <div className="flex gap-2 sm:gap-3">
+            <button onClick={() => setLesson(Math.max(1, lesson - 1))} disabled={lesson === 1} className="flex items-center gap-1 px-3 py-2 text-slate-400 hover:text-white disabled:opacity-30 transition bg-slate-900 rounded-lg border border-slate-700 hover:border-slate-500 text-sm font-medium"><ChevronLeft className="w-4 h-4"/><span className="hidden sm:inline">Prev</span></button>
+            <button onClick={() => setLesson(Math.min(10, lesson + 1))} disabled={lesson === 10} className="flex items-center gap-1 px-3 py-2 text-slate-400 hover:text-white disabled:opacity-30 transition bg-slate-900 rounded-lg border border-slate-700 hover:border-slate-500 text-sm font-medium"><span className="hidden sm:inline">Next</span><ChevronRight className="w-4 h-4"/></button>
+          </div>
+        </nav>
+      )}
+
+      {/* FULL-SCREEN LESSON PAGE */}
+      {phase === 'lesson' && (
+        <div className="absolute inset-0 z-30 bg-slate-950 overflow-y-auto custom-scrollbar pt-28">
+          <div className="min-h-screen flex flex-col max-w-4xl mx-auto px-6 pb-20 animate-in fade-in slide-in-from-bottom-8 duration-700">
 
             {/* Lesson Title */}
             <div className="flex items-center gap-4 mb-8 text-cyan-400">
-              <div className="p-4 bg-cyan-950/30 rounded-2xl border border-cyan-900/50">
+              <div className="p-4 bg-cyan-950/30 rounded-2xl border border-cyan-900/50 shadow-inner">
                 <BookOpen className="w-10 h-10" />
               </div>
               <div>
-                <p className="text-cyan-500 font-bold uppercase tracking-widest text-sm mb-1">Module {lesson} of 10</p>
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-white">{currentLesson.title}</h1>
+                <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight">{currentLesson.title}</h1>
+                <p className="text-cyan-500 font-medium mt-2">{currentLesson.desc}</p>
               </div>
             </div>
 
-            {/* 🚀 DEEP THEORY CONTENT PARSER */}
+            {/* DEEP THEORY CONTENT PARSER */}
             <div className="text-lg sm:text-xl text-slate-300 leading-relaxed mb-12">
               {currentLesson.theory.map((paragraph, idx) => {
-                // Style the "Lab Experiment" Headers
-                if (paragraph.startsWith('🔬')) {
-                  return <h3 key={idx} className="text-2xl font-bold text-cyan-400 mt-12 mb-6 flex items-center gap-2">{paragraph}</h3>;
+                
+                // 🧮 Formula Explanation Card
+                if (paragraph.startsWith('🧮')) {
+                  return (
+                    <div key={idx} className="bg-emerald-950/30 border border-emerald-900/50 p-6 sm:p-8 rounded-3xl my-8 shadow-inner relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-4 opacity-10"><Calculator className="w-24 h-24 text-emerald-400" /></div>
+                      <h4 className="text-emerald-400 font-bold mb-3 flex items-center gap-2 uppercase tracking-widest text-sm relative z-10">Formula Breakdown</h4>
+                      <p className="text-emerald-100 relative z-10">{paragraph.replace('🧮 Formula Breakdown:', '').replace('🧮', '').trim()}</p>
+                    </div>
+                  );
                 }
-                // Style the "Real World" Callouts
+
+                // 📝 Practice Problem Card
+                if (paragraph.startsWith('📝')) {
+                  const parts = paragraph.split('Solution:');
+                  const question = parts[0];
+                  const solution = parts[1];
+                  return (
+                    <div key={idx} className="bg-indigo-950/30 border border-indigo-900/50 p-6 sm:p-8 rounded-3xl my-8 shadow-inner">
+                      <h4 className="text-indigo-400 font-bold mb-3 flex items-center gap-2 uppercase tracking-widest text-sm">Practice Problem</h4>
+                      <p className="text-indigo-100 mb-6">{question.replace('📝 Example Problem:', '').replace('📝', '').trim()}</p>
+                      {solution && (
+                        <div className="bg-indigo-900/40 p-5 rounded-2xl border border-indigo-800/50">
+                          <span className="text-indigo-300 font-bold text-xs uppercase tracking-widest block mb-2">Step-by-Step Solution</span>
+                          <p className="text-indigo-50 font-medium">{solution.trim()}</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                // 🔬 Experiment Header
+                if (paragraph.startsWith('🔬')) {
+                  return <h3 key={idx} className="text-2xl font-bold text-cyan-400 mt-16 mb-6 flex items-center gap-2 border-b border-slate-800 pb-4">{paragraph}</h3>;
+                }
+
+                // 💡 Real World Callout
                 if (paragraph.startsWith('💡')) {
                   return (
-                    <div key={idx} className="bg-yellow-500/10 border border-yellow-500/30 text-yellow-100 p-6 rounded-2xl italic my-10 shadow-inner">
-                      <span className="font-bold text-yellow-400 block mb-2 not-italic tracking-wider text-sm uppercase">Real World Application</span>
+                    <div key={idx} className="bg-yellow-500/10 border border-yellow-500/30 text-yellow-100 p-6 sm:p-8 rounded-3xl italic my-10 shadow-inner">
+                      <span className="font-bold text-yellow-500 block mb-3 not-italic tracking-wider text-sm uppercase flex items-center gap-2"><Lightbulb className="w-5 h-5"/> Real World Application</span>
                       {paragraph.replace('💡 Real World Application:', '').trim()}
                     </div>
                   );
                 }
-                // Style the Experiment Bullet Points
+
+                // ▶ Experiment Steps
                 if (paragraph.startsWith('▶')) {
                   return (
-                    <div key={idx} className="flex gap-4 text-slate-300 mb-6 items-start bg-slate-900/50 p-4 rounded-xl border border-slate-800/50">
-                      <span className="text-cyan-500 mt-1 shrink-0">▶</span> 
-                      <span>{paragraph.substring(1).trim()}</span>
+                    <div key={idx} className="flex gap-4 text-slate-300 mb-4 items-start bg-slate-900/40 p-5 rounded-2xl border border-slate-800/50 hover:bg-slate-800/40 transition">
+                      <span className="text-cyan-500 mt-1 shrink-0 bg-cyan-950 p-1.5 rounded-lg border border-cyan-900">▶</span> 
+                      <span className="mt-1">{paragraph.substring(1).trim()}</span>
                     </div>
                   );
                 }
-                // Standard text paragraphs
+
+                // Standard paragraph
                 return <p key={idx} className="mb-6">{paragraph}</p>;
               })}
-            </div>
-            
-            {/* Formula Block */}
-            <div className="bg-gradient-to-br from-slate-900 to-slate-950 p-8 rounded-3xl border border-slate-800 flex flex-col items-center justify-center text-center shadow-2xl mb-16">
-              <p className="text-sm text-slate-500 mb-3 uppercase tracking-widest font-semibold">Governing Formula</p>
-              <p className="text-4xl sm:text-5xl text-emerald-400 font-mono font-bold tracking-tight">{currentLesson.formula}</p>
             </div>
 
             <div className="flex-grow"></div> 
 
             {/* Bottom Action Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 pb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-8 border-t border-slate-800 pt-10">
               <button 
                 onClick={() => setShowQuiz(true)}
-                className="group flex items-center justify-center gap-3 bg-slate-900 hover:bg-slate-800 text-white font-bold py-5 px-8 rounded-2xl border border-slate-700 transition-all hover:border-yellow-500/50"
+                className="group flex items-center justify-center gap-3 bg-slate-900 hover:bg-slate-800 text-white font-bold py-6 px-8 rounded-2xl border border-slate-700 transition-all hover:border-yellow-500/50 shadow-xl"
               >
-                <Lightbulb className="w-6 h-6 text-yellow-500 group-hover:scale-110 transition-transform" />
+                <Lightbulb className="w-6 h-6 text-yellow-500 group-hover:scale-125 transition-transform" />
                 Take the Quiz
               </button>
               
               <button 
                 onClick={() => setPhase('play')}
-                className="group flex items-center justify-center gap-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-5 px-8 rounded-2xl transition-all shadow-lg shadow-cyan-900/50 hover:scale-[1.02]"
+                className="group flex items-center justify-center gap-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-6 px-8 rounded-2xl transition-all shadow-xl shadow-cyan-900/50 hover:scale-[1.02]"
               >
                 <FlaskConical className="w-6 h-6 group-hover:rotate-12 transition-transform" />
                 Test It in Lab
@@ -106,31 +142,35 @@ export default function Lab() {
         </div>
       )}
 
-      {/* QUIZ MODAL - Placed at z-[60] so it appears over the full-screen lesson */}
-      {showQuiz && currentLesson.quiz && (
+      {/* 🚀 MULTI-QUESTION QUIZ MODAL */}
+      {showQuiz && activeQuiz && (
         <div className="absolute inset-0 z-[60] flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
-          <div className="bg-slate-900 border border-slate-700 p-6 sm:p-8 rounded-3xl max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-300">
-            <div className="flex justify-between items-start mb-6">
+          <div className="bg-slate-900 border border-slate-700 p-6 sm:p-8 rounded-3xl max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
+            
+            <div className="flex justify-between items-start mb-6 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-yellow-500/10 rounded-xl">
+                <div className="p-2 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
                   <Lightbulb className="w-6 h-6 text-yellow-500" />
                 </div>
-                <h2 className="text-2xl font-bold text-white">Knowledge Check</h2>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight">Knowledge Check</h2>
+                  <p className="text-slate-400 text-sm font-medium mt-1">Question {quizIndex + 1} of {currentLesson.quiz.length}</p>
+                </div>
               </div>
-              <button onClick={() => setShowQuiz(false)} className="text-slate-500 hover:text-white transition p-1 bg-slate-800 rounded-full">
+              <button onClick={() => setShowQuiz(false)} className="text-slate-500 hover:text-white transition p-1 bg-slate-800 rounded-full hover:bg-rose-500 hover:text-white">
                 <XCircle className="w-6 h-6" />
               </button>
             </div>
             
-            <p className="text-slate-300 mb-8 leading-relaxed text-lg">{currentLesson.quiz.question}</p>
+            <p className="text-slate-200 mb-8 leading-relaxed text-lg shrink-0 font-medium">{activeQuiz.question}</p>
             
-            <div className="space-y-3 mb-6 max-h-[40vh] overflow-y-auto custom-scrollbar pr-2">
-              {currentLesson.quiz.options.map((opt, idx) => {
+            <div className="space-y-3 mb-6 overflow-y-auto custom-scrollbar pr-2 flex-grow">
+              {activeQuiz.options.map((opt, idx) => {
                 const isSelected = selectedAnswer === idx;
-                const isCorrect = idx === currentLesson.quiz.answer;
+                const isCorrect = idx === activeQuiz.answer;
                 let btnClass = "w-full text-left px-5 py-4 rounded-xl border text-base font-medium transition-all duration-200 ";
                 if (quizState === 'idle') {
-                  btnClass += "border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700 hover:border-slate-500 hover:text-white";
+                  btnClass += "border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700 hover:border-slate-500 hover:text-white hover:scale-[1.01]";
                 } else {
                   if (isCorrect) btnClass += "border-emerald-500 bg-emerald-900/30 text-emerald-400";
                   else if (isSelected && !isCorrect) btnClass += "border-rose-500 bg-rose-900/30 text-rose-400";
@@ -144,17 +184,39 @@ export default function Lab() {
               })}
             </div>
             
-            {quizState !== 'idle' && (
-              <div className={`p-5 rounded-2xl flex items-start gap-4 animate-in slide-in-from-bottom-4 ${quizState === 'correct' ? 'bg-emerald-950/50 border border-emerald-900/50' : 'bg-rose-950/50 border border-rose-900/50'}`}>
-                {quizState === 'correct' ? <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0 mt-0.5" /> : <XCircle className="w-6 h-6 text-rose-400 shrink-0 mt-0.5" />}
-                <div>
-                  <h4 className={`text-lg font-bold mb-1 ${quizState === 'correct' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                    {quizState === 'correct' ? 'Correct!' : 'Not quite!'}
-                  </h4>
-                  <p className="text-slate-300 text-sm sm:text-base leading-relaxed">{currentLesson.quiz.explanation}</p>
+            {/* Feedback & Next Button Area */}
+            <div className="shrink-0 min-h-[120px]">
+              {quizState !== 'idle' && (
+                <div className="flex flex-col gap-4 animate-in slide-in-from-bottom-4">
+                  <div className={`p-5 rounded-2xl flex items-start gap-4 ${quizState === 'correct' ? 'bg-emerald-950/50 border border-emerald-900/50' : 'bg-rose-950/50 border border-rose-900/50'}`}>
+                    {quizState === 'correct' ? <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0 mt-0.5" /> : <XCircle className="w-6 h-6 text-rose-400 shrink-0 mt-0.5" />}
+                    <div>
+                      <h4 className={`text-lg font-bold mb-1 ${quizState === 'correct' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {quizState === 'correct' ? 'Correct!' : 'Not quite!'}
+                      </h4>
+                      <p className="text-slate-300 text-sm sm:text-base leading-relaxed">{activeQuiz.explanation}</p>
+                    </div>
+                  </div>
+
+                  {/* NEXT QUESTION / FINISH LOGIC */}
+                  {quizIndex < currentLesson.quiz.length - 1 ? (
+                    <button 
+                      onClick={() => { setQuizIndex(quizIndex + 1); setQuizState('idle'); setSelectedAnswer(null); }}
+                      className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 rounded-xl transition shadow-lg flex items-center justify-center gap-2"
+                    >
+                      Next Question <ChevronRight className="w-5 h-5"/>
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => setShowQuiz(false)}
+                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition shadow-lg flex items-center justify-center gap-2"
+                    >
+                      <CheckCircle2 className="w-5 h-5"/> Finish & Close
+                    </button>
+                  )}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       )}
