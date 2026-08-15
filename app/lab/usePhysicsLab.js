@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import Matter from 'matter-js';
 
 const WORLD_W = 1200;
@@ -38,7 +38,6 @@ export function usePhysicsLab() {
     setPhase('lesson'); 
   }, [lesson]);
 
-  // 🚀 Let the UI buttons communicate with the physics engine
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('ui-zoom-change', { detail: zoom }));
   }, [zoom]);
@@ -121,13 +120,8 @@ export function usePhysicsLab() {
     const mouse = Mouse.create(render.canvas);
     mouseRef.current = mouse;
     const mouseConstraint = MouseConstraint.create(engine, { 
-    mouse: mouse, 
-    constraint: { 
-        stiffness: 0.05,       // Makes it elastic like a rubber band instead of a rigid stick
-        angularStiffness: 0,   // Allows it to freely rotate and dangle from the pinch point
-        damping: 0.1,          // Smooths out the swinging so it feels heavier
-        render: { visible: false } 
-    } 
+      mouse: mouse, 
+      constraint: { stiffness: 0.05, angularStiffness: 0, damping: 0.1, render: { visible: false } } 
     });
     World.add(engine.world, mouseConstraint);
 
@@ -135,7 +129,6 @@ export function usePhysicsLab() {
     const runner = Runner.create();
     Runner.run(runner, engine);
 
-    // --- CAMERA ENGINE & PANNING FIX ---
     let currentZoom = 1;
     let isPanning = false;
     let startX = 0;
@@ -184,17 +177,11 @@ export function usePhysicsLab() {
     };
     window.addEventListener('wheel', handleWheel, { passive: false });
 
-    // 🚀 THE FIX: Precise pointer detection
     const handlePointerDown = (e) => {
       if (e.target.tagName !== 'CANVAS') return;
-      
-      // Get all moveable physics objects (excluding walls/floor)
       const allBodies = Matter.Composite.allBodies(engine.world).filter(b => !b.isStatic);
-      
-      // Fire an invisible query exactly at the mouse pointer
       const bodiesUnderMouse = Matter.Query.point(allBodies, mouse.position);
       
-      // If we clicked on NOTHING (or the background wall), then pan the camera!
       if (bodiesUnderMouse.length === 0) {
         isPanning = true;
         startX = e.clientX || (e.touches && e.touches[0].clientX);
@@ -207,21 +194,15 @@ export function usePhysicsLab() {
       if (isPanning) {
         const currentX = e.clientX || (e.touches && e.touches[0].clientX);
         const currentY = e.clientY || (e.touches && e.touches[0].clientY);
-        
         const finalScale = (window.innerWidth / WORLD_W) * currentZoom;
 
-        const deltaX = (startX - currentX) / finalScale;
-        const deltaY = (startY - currentY) / finalScale;
-
-        render.bounds.min.x += deltaX;
-        render.bounds.max.x += deltaX;
-        render.bounds.min.y += deltaY;
-        render.bounds.max.y += deltaY;
+        render.bounds.min.x += (startX - currentX) / finalScale;
+        render.bounds.max.x += (startX - currentX) / finalScale;
+        render.bounds.min.y += (startY - currentY) / finalScale;
+        render.bounds.max.y += (startY - currentY) / finalScale;
 
         Matter.Mouse.setOffset(mouse, render.bounds.min);
-
-        startX = currentX;
-        startY = currentY;
+        startX = currentX; startY = currentY;
       }
     };
 
@@ -233,7 +214,6 @@ export function usePhysicsLab() {
     render.canvas.addEventListener('mousedown', handlePointerDown);
     window.addEventListener('mousemove', handlePointerMove);
     window.addEventListener('mouseup', handlePointerUp);
-    
     render.canvas.addEventListener('touchstart', handlePointerDown, { passive: false });
     window.addEventListener('touchmove', handlePointerMove, { passive: false });
     window.addEventListener('touchend', handlePointerUp);
@@ -297,75 +277,117 @@ export function usePhysicsLab() {
 
   const clearLab = () => setResetTrigger(prev => prev + 1);
 
+  // 🚀 EXPANDED: Rich, deep-dive theory arrays!
   const lessonData = {
     1: { 
-      title: 'Restitution', desc: 'Observe kinetic energy retention.', theory: 'Restitution measures bounciness. A perfectly elastic material (restitution = 1.0) loses no energy on impact, while an inelastic material (restitution = 0) absorbs it completely.', formula: 'e = v / u',
-      buttons: [{ label: 'Rubber', action: () => spawn('rubber') }, { label: 'Bowling', action: () => spawn('bowling') }], 
+      title: 'Restitution', desc: 'Observe kinetic energy retention.', formula: 'e = v / u',
+      theory: [
+        "Restitution is the physics term for 'bounciness'. When two objects collide, they physically compress against each other. The coefficient of restitution (e) measures how efficiently an object snaps back to its original shape.",
+        "On a microscopic level, this depends entirely on the material's molecular bonds. A rubber ball has long polymer chains that stretch and spring back with almost zero energy loss, resulting in a high restitution close to 1.0.",
+        "In contrast, a heavy bowling ball or a chunk of clay absorbs the impact. The molecular bonds permanently deform or shift, turning the kinetic energy of the fall into heat and sound rather than upward motion. This is called an 'inelastic collision'."
+      ],
+      buttons: [{ label: 'Drop Rubber', action: () => spawn('rubber') }, { label: 'Drop Bowling Ball', action: () => spawn('bowling') }], 
       quiz: { question: "Which material property determines how much kinetic energy is retained after a collision?", options: ["Density", "Restitution", "Friction", "Mass"], answer: 1, explanation: "Restitution measures how much kinetic energy remains after an impact." } 
     },
     2: { 
-      title: 'Friction', desc: 'Friction resists sliding.', theory: 'Friction is the force resisting the relative motion of solid surfaces sliding against each other. Ice has a near-zero coefficient of friction, while wood grips the surface.', formula: 'F_f = μ × F_n',
-      buttons: [{ label: 'Ice', action: () => spawn('ice') }, { label: 'Wood', action: () => spawn('wood') }], 
+      title: 'Friction', desc: 'Friction resists sliding.', formula: 'F_f = μ × F_n',
+      theory: [
+        "Friction is the force that resists the relative motion of two solid surfaces sliding against each other. Even objects that look perfectly smooth to the naked eye actually have jagged, microscopic mountains and valleys on their surfaces.",
+        "When two materials touch, these microscopic peaks catch onto each other. To keep moving, the object has to either rise over these peaks or break them off, which requires energy.",
+        "Ice has a near-zero coefficient of friction because a microscopic layer of water acts as a lubricant, filling in those valleys. Wood, however, is porous and rough, causing it to grip the surface and rapidly slow down."
+      ],
+      buttons: [{ label: 'Spawn Ice Block', action: () => spawn('ice') }, { label: 'Spawn Wood Block', action: () => spawn('wood') }], 
       quiz: { question: "What force resists the blocks as they slide down the ramp?", options: ["Momentum", "Tension", "Gravity", "Friction"], answer: 3, explanation: "Friction is the resistance encountered when moving over another surface." } 
     },
     3: { 
-      title: 'Gravity', desc: 'Change planetary mass.', theory: 'Gravity pulls objects toward each other. The more mass a planet has, the stronger its gravitational pull. Jupiter accelerates objects downward 2.4x faster than Earth!', formula: 'F = m × a', isGravity: true, 
-      quiz: { question: "If you drop an object on Jupiter, why does it fall faster than on Earth?", options: ["Higher mass creates stronger gravity", "No air resistance", "Magnetic pull", "Shorter distance"], answer: 0, explanation: "Gravity is determined by mass. Jupiter is massive, pulling objects faster." } 
+      title: 'Gravity', desc: 'Change planetary mass.', formula: 'F = m × a', isGravity: true, 
+      theory: [
+        "Gravity is the invisible force that pulls massive objects toward each other. According to Einstein's Theory of General Relativity, massive objects actually warp the fabric of space-time around them, creating a 'dent' that other objects fall into.",
+        "The more mass a planet has, the deeper the dent, and the stronger its gravitational pull. Earth pulls objects downward at an acceleration of 9.8 meters per second squared.",
+        "If you travel to Jupiter, which is incredibly massive, it accelerates objects downward 2.4 times faster than Earth! Conversely, the Moon has very little mass, allowing objects to fall in a slow, floaty manner."
+      ],
+      quiz: { question: "If you drop an object on Jupiter, why does it fall faster than on Earth?", options: ["Higher mass creates stronger gravity", "No air resistance", "Magnetic pull", "Shorter distance"], answer: 0, explanation: "Gravity is determined by planetary mass. Jupiter is massive, pulling objects faster." } 
     },
     4: { 
-      title: 'Air Resistance', desc: 'Drag affects falling speed.', theory: 'In a vacuum, all objects fall at the same speed. But in an atmosphere, objects with a large surface area and low mass (like a feather) experience drag forces that slow them down.', formula: 'F_d = ½ρv²C_dA',
-      buttons: [{ label: 'Feather', action: () => spawn('feather') }, { label: 'Iron Ball', action: () => spawn('iron') }], 
-      quiz: { question: "Why does the feather fall slower than the iron ball on Earth?", options: ["Less mass", "Air resistance pushes against its surface area", "Gravity pulls it less", "Lower restitution"], answer: 1, explanation: "On Earth, the feather catches the air, creating drag." } 
+      title: 'Air Resistance', desc: 'Drag affects falling speed.', formula: 'F_d = ½ρv²C_dA',
+      theory: [
+        "A famous physics rule states that in a perfect vacuum, all objects fall at the exact same speed regardless of their mass. A feather and a bowling ball dropped on the moon will hit the ground simultaneously.",
+        "However, on Earth, we live at the bottom of an ocean of air. As objects fall, they have to literally push billions of air molecules out of the way. This creates a friction force pushing upward, known as drag.",
+        "Because a feather has a massive surface area relative to its tiny mass, air resistance easily counteracts gravity, causing it to drift. An iron ball's mass easily punches through the air, making it fall much faster."
+      ],
+      buttons: [{ label: 'Drop Feather', action: () => spawn('feather') }, { label: 'Drop Iron Ball', action: () => spawn('iron') }], 
+      quiz: { question: "Why does the feather fall slower than the iron ball on Earth?", options: ["Less mass", "Air resistance pushes against its surface area", "Gravity pulls it less", "Lower restitution"], answer: 1, explanation: "On Earth, the feather catches the air, creating upward drag." } 
     },
     5: { 
-      title: 'Momentum', desc: 'Conservation of momentum.', theory: 'Momentum is mass in motion. In a closed system, momentum is conserved. When one ball hits the Cradle, its momentum transfers cleanly through the center balls to the final ball.', formula: 'p = m × v',
+      title: 'Momentum', desc: 'Conservation of momentum.', formula: 'p = m × v',
+      theory: [
+        "Momentum is defined simply as 'mass in motion'. One of the most unbreakable rules in the universe is the Conservation of Momentum: in a closed system, momentum can never be created or destroyed, only transferred.",
+        "A Newton's Cradle perfectly demonstrates this. When you pull back one ball and let it drop, it strikes the stationary balls with a specific amount of momentum.",
+        "Because the system is perfectly aligned, that exact amount of momentum travels through the atomic structure of the center balls and pushes the final ball outward with almost the exact same speed and energy!"
+      ],
       buttons: [], 
       quiz: { question: "In a Newton's Cradle, what principle causes the ball on the opposite end to swing out?", options: ["Conservation of Momentum", "Friction", "Air Resistance", "Tension"], answer: 0, explanation: "Energy transfers through the stationary balls, conserving momentum!" } 
     },
     6: { 
-      title: 'Kinetics', desc: 'Transfer massive force.', theory: 'Kinetic energy is the energy of motion. When a heavy, fast-moving wrecking ball strikes a structure, its massive kinetic energy forcefully transfers into the stationary blocks.', formula: 'KE = ½mv²',
+      title: 'Kinetics', desc: 'Transfer massive force.', formula: 'KE = ½mv²',
+      theory: [
+        "Kinetic energy is the energy an object possesses due to its motion. The formula (KE = ½mv²) tells us a crucial secret: doubling an object's mass doubles its energy, but doubling its speed quadruples its energy!",
+        "When a heavy, fast-moving wrecking ball strikes a stationary structure, the First Law of Thermodynamics kicks in. The massive amount of kinetic energy cannot just vanish.",
+        "Instead, it forcefully transfers into the stationary blocks. If the blocks are light, that transferred energy sends them flying in all directions, demonstrating explosive kinetic transfer."
+      ],
       buttons: [{ label: 'Drop Wrecking Ball', action: () => spawn('wrecking-ball') }], 
-      quiz: { question: "When the wrecking ball hits the pyramid, where does its kinetic energy go?", options: ["It vanishes", "Turns into gravity", "Transfers into the blocks", "Increases mass"], answer: 2, explanation: "Energy cannot be destroyed; it transfers directly into the lighter blocks." } 
+      quiz: { question: "When the wrecking ball hits the pyramid, where does its kinetic energy go?", options: ["It vanishes", "Turns into gravity", "Transfers into the blocks", "Increases mass"], answer: 2, explanation: "Energy cannot be destroyed; it transfers directly into the lighter blocks causing them to move." } 
     },
     7: { 
-      title: 'Elasticity', desc: 'Springs & Constraints.', theory: 'Hookes Law states that the force needed to extend or compress a spring is proportional to that distance. The physics constraint acts like a rubber band pulling the ball back to the center.', formula: 'F = -kx',
+      title: 'Elasticity', desc: 'Springs & Constraints.', formula: 'F = -kx',
+      theory: [
+        "Elasticity describes a material's ability to return to its original shape after being stretched or compressed. This is governed by Hooke's Law.",
+        "Hooke's Law states that the force needed to stretch a spring is directly proportional to how far you stretch it. Pull a rubber band twice as far, and it will pull back twice as hard.",
+        "In our physics engine, we use 'constraints' to simulate this. When you drag the ball away from its anchor, the constraint acts exactly like a physical spring, building up potential energy and violently pulling the ball back when released."
+      ],
       buttons: [{ label: 'Drop Heavy Box', action: () => spawn('heavy-box') }], 
       quiz: { question: "What provides the restorative force that pulls the ball back?", options: ["Gravity", "Friction", "Restitution", "Elastic Tension"], answer: 3, explanation: "The constraint acts like a spring, converting potential energy back to kinetic." } 
     },
     8: { 
-      title: 'Tension', desc: 'Suspension constraints.', theory: 'Tension is the pulling force transmitted axially by strings or chains. The bridge planks don\'t fall because the tension forces in the hidden constraints perfectly oppose the downward force of gravity.', formula: 'T = m × g',
+      title: 'Tension', desc: 'Suspension constraints.', formula: 'T = m × g',
+      theory: [
+        "In engineering and physics, forces usually fall into two categories: compression (pushing together) and tension (pulling apart).",
+        "Tension is the pulling force transmitted axially by strings, cables, or chains. Think of a massive suspension bridge: the heavy roadway wants to fall down due to gravity.",
+        "To stop it from falling, massive steel cables are attached. These cables are pulled incredibly tight, creating an upward tension force that perfectly opposes the downward pull of gravity. As long as the cables don't snap, the bridge floats in mid-air!"
+      ],
       buttons: [{ label: 'Drop Heavy Box', action: () => spawn('heavy-box') }], 
       quiz: { question: "Which force primarily keeps the bridge from collapsing?", options: ["Compression", "Tension from chains", "Friction", "Restitution"], answer: 1, explanation: "The bridge is held up by tension—a pulling force acting along the invisible constraints." } 
     },
     9: { 
-      title: 'Soft Bodies', desc: 'Deformable structures.', theory: 'Unlike rigid bodies, soft bodies deform under stress. This simulation builds a soft body by connecting multiple small rigid particles with flexible, spring-like constraints.', formula: 'Stress = F / A',
+      title: 'Soft Bodies', desc: 'Deformable structures.', formula: 'Stress = F / A',
+      theory: [
+        "In basic physics, we treat objects as 'rigid bodies'—meaning they never bend, squish, or deform. But in the real world, almost everything is slightly soft.",
+        "A soft body deforms under mechanical stress. To simulate this computationally, engineers build 'meshes'. We take dozens of tiny, hard particles and connect them all together in a grid using flexible, spring-like constraints.",
+        "When the object hits the ground, the outer particles stop, but the inner particles keep moving slightly. The springs stretch and compress, absorbing the shock and causing the entire structure to jiggle like a block of gelatin!"
+      ],
       buttons: [{ label: 'Drop Heavy Box', action: () => spawn('heavy-box') }], 
-      quiz: { question: "Why doesn't the soft-body Jello block shatter upon impact?", options: ["Flexible springs absorb the energy", "Zero mass", "Ignores gravity", "High friction"], answer: 0, explanation: "The elastic springs stretch and deform to absorb impact gracefully." } 
+      quiz: { question: "Why doesn't the soft-body Jello block shatter upon impact?", options: ["Flexible springs absorb the energy", "Zero mass", "Ignores gravity", "High friction"], answer: 0, explanation: "The elastic springs stretch and deform to gracefully absorb the impact energy." } 
     },
     10: { 
-      title: 'Granular Flow', desc: 'Particles acting like fluid.', theory: 'Granular materials act like solids when stationary, but flow like fluids when moving. By simulating hundreds of tiny rigid bodies, we can recreate fluid-like flow dynamics.', formula: 'μ = tan(θ)',
+      title: 'Granular Flow', desc: 'Particles acting like fluid.', formula: 'μ = tan(θ)',
+      theory: [
+        "Granular materials—like sand, grain, snow, or coffee grounds—are fascinating because they break the rules. They are made of solid pieces, but when you put millions of them together, they act like a liquid.",
+        "When sitting still in a bucket, they lock together through static friction and behave perfectly like a solid block. You can even walk on them.",
+        "But when poured, those microscopic rigid bodies constantly collide, roll over each other, and flow around obstacles. By simulating hundreds of tiny solid balls in this lab, you can witness fluid dynamics emerging purely from solid collisions!"
+      ],
       buttons: [{ label: 'Spawn 30 Particles', action: () => spawn('particles') }], 
       quiz: { question: "How do large amounts of small, solid particles behave when poured?", options: ["Like a solid block", "Like a fluid", "They float away", "Bounce perfectly"], answer: 1, explanation: "When thousands of tiny rigid bodies interact, their collective movement simulates fluid dynamics." } 
     },
   };
 
   return {
-    sceneRef,
-    phase, setPhase,
-    isMinimized, setIsMinimized,
-    lesson, setLesson,
-    gravityType, changeGravity,
-    showCustomizer, setShowCustomizer,
-    customShape, setCustomShape,
-    customMaterial, setCustomMaterial,
-    customSize, setCustomSize,
-    customMassMult, setCustomMassMult,
-    showQuiz, setShowQuiz,
-    quizState, setQuizState,
-    selectedAnswer, setSelectedAnswer,
-    zoom, setZoom,
-    clearLab,
-    spawn,
+    sceneRef, phase, setPhase, isMinimized, setIsMinimized,
+    lesson, setLesson, gravityType, changeGravity,
+    showCustomizer, setShowCustomizer, customShape, setCustomShape,
+    customMaterial, setCustomMaterial, customSize, setCustomSize,
+    customMassMult, setCustomMassMult, showQuiz, setShowQuiz,
+    quizState, setQuizState, selectedAnswer, setSelectedAnswer,
+    zoom, setZoom, clearLab, spawn,
     currentLesson: lessonData[lesson]
   };
 }
